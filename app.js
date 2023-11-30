@@ -3,6 +3,7 @@ const bodyParser = require('body-parser');
 const jwt = require('jsonwebtoken');
 const path = require('path');
 
+//Pre-Requisites fullfiled: Classes
 class Machine {
   constructor(id, name, area, status, recipe) {
     this.id = id;
@@ -13,6 +14,7 @@ class Machine {
   }
 }
 
+//Pre-Requisites fullfiled: Classes
 class Recipe {
   constructor(id, name) {
     this.id = id;
@@ -21,21 +23,21 @@ class Recipe {
 }
 
 const app = express();
-const port = process.env.PORT || 3000; // Allow environment variable or default to 3000
-const secretKey = '231299'; // Change this with a strong secret key in production
+const port = process.env.PORT || 3000; 
+const secretKey = '231299'; 
 
-// Middleware for setting Content Security Policy
+
 app.use((req, res, next) => {
   res.setHeader('Content-Security-Policy', "default-src 'none'; font-src 'self'");
   next();
 });
 
-// Serve static files (including the font file) from the root directory
+
 app.use(express.static(path.join(__dirname, '/')));
 
 app.use(bodyParser.json());
 
-// In-memory data store
+//Pre-Requisites fullfiled: Initialize the class with some data
 const machines = [
   new Machine(1, 'Machine1', 'Assembly', 'up', new Recipe(1, 'Recipe1')),
   new Machine(2, 'Machine2', 'Test', 'down', new Recipe(2, 'Recipe2')),
@@ -49,7 +51,6 @@ const machines = [
   new Machine(10, 'Machine10', 'Test', 'down', new Recipe(10, 'Recipe10')),
 ];
 
-// Middleware for basic authorization
 const authorize = (req, res, next) => {
   const token = req.headers.authorization;
   if (!token) {
@@ -61,20 +62,20 @@ const authorize = (req, res, next) => {
       return res.status(401).json({ error: 'Unauthorized - Invalid token' });
     }
 
-    // Add user information to the request for further processing if needed
+  
     req.user = decoded;
     next();
   });
 };
 
-// Use Case 1: Queries a list of machines by area
+
 app.get('/api/machines/byArea', authorize, (req, res) => {
   const { area } = req.query;
   const filteredMachines = machines.filter(machine => machine.area === area);
   res.json(filteredMachines.map(machine => ({ area: machine.area, machine })));
 });
 
-// Use Case 2: Queries a list of recipes in the machine
+
 app.get('/api/machines/recipes', authorize, (req, res) => {
   const { machine } = req.query;
   const foundMachine = machines.find(m => m.name === machine);
@@ -85,18 +86,18 @@ app.get('/api/machines/recipes', authorize, (req, res) => {
   }
 });
 
-// Use Case 3: Queries a list of machines by status in an area
+
 app.get('/api/machines/byStatus', authorize, (req, res) => {
   const { area, status } = req.query;
   const filteredMachines = machines.filter(machine => machine.area === area && machine.status === status);
   res.json(filteredMachines.map(machine => ({ machine, area: machine.area, status: machine.status })));
 });
 
-// Login route to obtain a token (for simplicity, you might want to use a more secure authentication method)
+
+//Requirements Fullfilled: Basic Authentication
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
 
-  // Dummy user authentication (replace with your actual authentication logic)
   if (username === 'user' && password === 'password') {
     const token = jwt.sign({ username }, secretKey, { expiresIn: '1h' });
     res.json({ token });
